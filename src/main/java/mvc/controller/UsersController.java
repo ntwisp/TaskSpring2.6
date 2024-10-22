@@ -1,15 +1,15 @@
 package mvc.controller;
 
 import mvc.model.User;
+import mvc.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-import mvc.service.UserService;
 
 @Controller
-@RequestMapping(value = "/users")
+@RequestMapping("/users")
 public class UsersController {
 
     private final UserService userService;
@@ -18,53 +18,42 @@ public class UsersController {
         this.userService = userService;
     }
 
-    @GetMapping(value = {"", "/", "list"})
-    public String userList(Model model,
-                           @ModelAttribute("flashMessage") String flashAttribute) {
+    @GetMapping
+    public String listUsers(Model model) {
         model.addAttribute("users", userService.readAllUsers());
         return "list";
     }
 
-    @GetMapping(value = "/create")
-    public String addUserForm(@ModelAttribute("user") User user) {
-        return "form";
-    }
-
-    @GetMapping(value = "/edit", params = "id")
-    public String edidtUserForm(@RequestParam("id") int id,
-                                RedirectAttributes attributes, Model model) {
-        try {
-            model.addAttribute("user", userService.readUser(id));
-        } catch (NumberFormatException | NullPointerException e) {
-            attributes.addFlashAttribute("flashMessage", "User are not exists!");
-            return "redirect:/users/list";
-        }
+    @GetMapping("/create")
+    public String createUser(Model model) {
+        model.addAttribute("user", new User());
         return "form";
     }
 
     @PostMapping
-    public RedirectView saveUser(@ModelAttribute("user") User user,
-                                 RedirectAttributes attributes) {
-        if (null == user.getId()) {
+    public RedirectView saveUser(@ModelAttribute User user, RedirectAttributes attributes) {
+        if (user.getId() == null) {
             userService.createUser(user);
         } else {
             userService.updateUser(user);
         }
-
-        attributes.addFlashAttribute("flashMessage", "User " + user.getFirstName() + " successfully created!");
-        return new RedirectView("/users/list");
+        attributes.addFlashAttribute("message", "User saved successfully");
+        return new RedirectView("/users");
     }
 
-    @GetMapping(value = "/delete")
-    public RedirectView deleteUser(@RequestParam(value = "id", defaultValue = "") String id,
-                                   RedirectAttributes attributes) {
-        try {
-            User user = userService.deleteUser(Integer.parseUnsignedInt(id));
-            attributes.addFlashAttribute("flashMessage", "User " + user.getFirstName() + " successfully deleted!");
-        } catch (NumberFormatException | NullPointerException e) {
-            attributes.addFlashAttribute("flashMessage", "User are not exists!");
-        }
+@GetMapping(value = "/edit", params = "id")
+    public String editUser(@RequestParam("id") Integer id,
+                               Model model) {
+        User user = userService.readUser(id);
+        model.addAttribute("user", user);
+        return "form";
+    }
 
-        return new RedirectView("/users/list");
+@GetMapping(value = "/delete")
+public RedirectView deleteUser(@RequestParam(value = "id", defaultValue = "") Integer id,
+                               RedirectAttributes attributes) {
+        userService.deleteUser(id);
+        attributes.addFlashAttribute("message", "User deleted successfully");
+        return new RedirectView("/users");
     }
 }

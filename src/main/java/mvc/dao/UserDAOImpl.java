@@ -1,14 +1,13 @@
 package mvc.dao;
 
 import mvc.model.User;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 import java.util.List;
 
-@Repository
+@Component
 public class UserDAOImpl implements UserDAO {
 
     @PersistenceContext
@@ -16,33 +15,32 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<User> readAllUsers() {
-        TypedQuery<User> query = entityManager.createQuery("from User", User.class);
-        return query.getResultList();
+        return entityManager.createQuery("FROM User", User.class).getResultList();
+    }
+
+    @Override
+    public User readUser(Integer id) {
+        return entityManager.find(User.class, id);
     }
 
     @Override
     @Transactional
-    public User createUser(User user) {
-//        entityManager.persist(user);
-        return entityManager.merge(user);
+    public void createUser(User user) {
+        entityManager.persist(user);
     }
 
     @Override
     @Transactional
-    public User deleteUser(Integer userId) {
-        User user = readUser(userId);
-        entityManager.remove(user);
-        return user;
+    public void updateUser(User user) {
+        entityManager.merge(user);
     }
 
     @Override
     @Transactional
-    public User updateUser(User user) {
-        return entityManager.merge(user);
-    }
-
-    @Override
-    public User readUser(Integer userId) {
-        return entityManager.find(User.class, userId);
+    public void deleteUser(Integer id) {
+        User user = readUser(id);
+        if (user != null) {
+            entityManager.remove(user);
+        }
     }
 }

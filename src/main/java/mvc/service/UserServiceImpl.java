@@ -1,9 +1,10 @@
 package mvc.service;
 
-import mvc.model.User;
 import mvc.dao.UserDAO;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
+import mvc.model.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -21,27 +22,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(User user) {
-        return userDAO.createUser(user);
+    public User readUser(Integer id) {
+        return userDAO.readUser(id);
     }
 
     @Override
-    public User deleteUser(Integer userId) {
-        try {
-            return userDAO.deleteUser(userId);
-        } catch (InvalidDataAccessApiUsageException e) {
-            System.out.println("Not found User");
-        }
-        return null;
+    @Transactional
+    public void createUser(User user) {
+        userDAO.createUser(user);
     }
 
     @Override
-    public User updateUser(User user) {
-        return userDAO.updateUser(user);
+    @Transactional
+    public void updateUser(User user) {
+        userDAO.updateUser(user);
     }
 
     @Override
-    public User readUser(Integer userId) {
-        return userDAO.readUser(userId);
+    @Transactional
+    public void deleteUser(Integer id) {
+        userDAO.deleteUser(id);
     }
 }
